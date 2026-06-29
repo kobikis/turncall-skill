@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "turncall-skill",
+  "description": "TurnCall builder skill — guidance for building apps on the TurnCall voice API.",
+  "owner": {
+    "name": "kobikis",
+    "url": "https://github.com/kobikis"
+  },
+  "plugins": [
+    {
+      "name": "turncall",
+      "description": "Build apps on top of TurnCall — outbound dialers, inbound routers, SMS/chat, webhooks, and call control.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}

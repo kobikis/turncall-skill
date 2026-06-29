@@ -12,22 +12,33 @@ handle webhooks and call-init, and where *your* logic plugs in. Covers three pat
 
 ## Install
 
-Copy the skill into the repo where you're building your TurnCall app:
+### As a plugin (recommended)
+
+This repo is a Claude Code plugin marketplace. In Claude Code:
+
+```
+/plugin marketplace add kobikis/turncall-skill
+/plugin install turncall@turncall-skill
+```
+
+Update later with `/plugin update`. (The repo is private — you'll need access to it.)
+
+### Or copy it in manually
 
 ```bash
 # from your app repo
 mkdir -p .claude/skills
-cp -r /path/to/turncall-skill/.claude/skills/turncall .claude/skills/turncall
+cp -r /path/to/turncall-skill/skills/turncall .claude/skills/turncall
 ```
 
-It's **model-invoked**: Claude reaches for it on its own when you're working with TurnCall
-(placing outbound calls, routing inbound calls, handling TurnCall webhooks, configuring
-call-init). You can also invoke it by name.
+Either way it's **model-invoked**: Claude reaches for it on its own when you're working with
+TurnCall (placing outbound calls, routing inbound calls, handling TurnCall webhooks,
+configuring call-init). You can also invoke it by name.
 
 ## What's inside
 
 ```
-.claude/skills/turncall/
+skills/turncall/
 ├── SKILL.md            # orient + the logic seam + route to a recipe
 ├── API.md              # curated builder API: auth, endpoints, webhook/call-init shapes
 ├── openapi.json        # snapshot of the full spec (field-exact fallback)
@@ -35,6 +46,7 @@ call-init). You can also invoke it by name.
     ├── outbound-campaign.md
     ├── inbound-routing.md
     └── sms-chat.md
+.claude-plugin/         # plugin + marketplace manifests
 ```
 
 ## Keeping it current
