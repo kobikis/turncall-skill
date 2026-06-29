@@ -1,10 +1,8 @@
 {
-  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "turncall-skill",
   "description": "TurnCall builder skill — guidance for building apps on the TurnCall voice API.",
   "owner": {
-    "name": "kobikis",
-    "url": "https://github.com/kobikis"
+    "name": "kobikis"
   },
   "plugins": [
     {

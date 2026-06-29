@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "description": "Build apps on top of the TurnCall voice API — outbound dialers, inbound routers, SMS/chat, webhooks, and call control.",
   "author": {
-    "name": "kobikis",
-    "url": "https://github.com/kobikis"
-  }
+    "name": "kobikis"
+  },
+  "homepage": "https://github.com/kobikis/turncall-skill",
+  "repository": "https://github.com/kobikis/turncall-skill",
+  "license": "MIT"
 }
