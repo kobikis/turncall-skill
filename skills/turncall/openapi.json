@@ -186,6 +186,66 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Delete Project",
+        "description": "Soft-delete a project (ADR-0011). A project can only delete ITSELF (the\npath id must match the authenticated project) and only with an admin key.\nAuto-unbinds the project's Twilio numbers and sweeps its object storage,\nthen marks the project deleted \u2014 its keys stop working immediately.\nIRREVERSIBLE for storage (recordings/KB files are purged).",
+        "operationId": "delete_project_v1_projects__project_id__delete",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Project Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Project V1 Projects  Project Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/v1/api-keys": {
@@ -300,7 +360,7 @@
           "api-keys"
         ],
         "summary": "Create Api Key Authenticated",
-        "description": "Create an additional API key (requires auth).",
+        "description": "Create an additional API key. Requires a write role (admin/developer);\nthe new key's role may not exceed the caller's \u2014 otherwise a lower-privilege\nkey could mint an admin key and escalate.",
         "operationId": "create_api_key_authenticated_v1_api_keys_authenticated_post",
         "parameters": [
           {
@@ -362,7 +422,7 @@
           "api-keys"
         ],
         "summary": "Revoke Api Key",
-        "description": "Revoke an API key (must belong to authenticated project).",
+        "description": "Revoke an API key (must belong to the authenticated project).",
         "operationId": "revoke_api_key_v1_api_keys__api_key_id__delete",
         "parameters": [
           {
@@ -697,6 +757,66 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Update Agent V1 Agents  Agent Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "agents"
+        ],
+        "summary": "Delete Agent",
+        "description": "Delete an agent (archives it \u2014 call history stays queryable).",
+        "operationId": "delete_agent_v1_agents__agent_id__delete",
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Agent Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Agent V1 Agents  Agent Id  Delete"
                 }
               }
             }
@@ -1210,6 +1330,64 @@
                   "additionalProperties": true,
                   "title": "Response Get Call Transcript V1 Calls  Call Id  Transcript Get"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/calls/{call_id}/recording": {
+      "get": {
+        "tags": [
+          "calls"
+        ],
+        "summary": "Get Call Recording",
+        "description": "Stream the call recording (WAV) from object storage.",
+        "operationId": "get_call_recording_v1_calls__call_id__recording_get",
+        "parameters": [
+          {
+            "name": "call_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Call Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -1965,12 +2143,82 @@
           }
         }
       },
+      "put": {
+        "tags": [
+          "phone-numbers"
+        ],
+        "summary": "Update Phone Number",
+        "description": "Update a binding in place \u2014 id and server_url_secret stay stable, so\ncall-init endpoints keep verifying with the same secret across edits.",
+        "operationId": "update_phone_number_v1_phone_numbers__phone_number_id__put",
+        "parameters": [
+          {
+            "name": "phone_number_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Phone Number Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePhoneNumberRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Phone Number V1 Phone Numbers  Phone Number Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "phone-numbers"
         ],
         "summary": "Unbind Phone Number",
-        "description": "Remove a phone number binding.",
+        "description": "Remove a phone number binding and clear the Twilio number's webhooks \u2014\nan unbound number must not keep pointing Twilio at TurnCall.",
         "operationId": "unbind_phone_number_v1_phone_numbers__phone_number_id__delete",
         "parameters": [
           {
@@ -2893,7 +3141,7 @@
           "knowledge-bases"
         ],
         "summary": "Upload Document",
-        "description": "Upload a document to a knowledge base.",
+        "description": "Upload a document. Returns 202 with a 'processing' document immediately;\nextract/chunk/embed runs in the background (it can take minutes on a large\nfile). Poll GET /{kb_id}/documents/{doc_id} for the ready/failed transition.",
         "operationId": "upload_document_v1_knowledge_bases__kb_id__documents_post",
         "parameters": [
           {
@@ -2934,7 +3182,7 @@
           }
         },
         "responses": {
-          "201": {
+          "202": {
             "description": "Successful Response",
             "content": {
               "application/json": {
@@ -3425,6 +3673,308 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/takeaways": {
+      "post": {
+        "tags": [
+          "takeaways"
+        ],
+        "summary": "Create Takeaway",
+        "description": "Create a takeaway definition.",
+        "operationId": "create_takeaway_v1_takeaways_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTakeawayRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Takeaway V1 Takeaways Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "takeaways"
+        ],
+        "summary": "List Takeaways",
+        "operationId": "list_takeaways_v1_takeaways_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Takeaways V1 Takeaways Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/takeaways/{takeaway_id}": {
+      "get": {
+        "tags": [
+          "takeaways"
+        ],
+        "summary": "Get Takeaway",
+        "operationId": "get_takeaway_v1_takeaways__takeaway_id__get",
+        "parameters": [
+          {
+            "name": "takeaway_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Takeaway Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Takeaway V1 Takeaways  Takeaway Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "takeaways"
+        ],
+        "summary": "Update Takeaway",
+        "description": "Update a takeaway (name is immutable \u2014 it keys results in payloads).",
+        "operationId": "update_takeaway_v1_takeaways__takeaway_id__put",
+        "parameters": [
+          {
+            "name": "takeaway_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Takeaway Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTakeawayRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Takeaway V1 Takeaways  Takeaway Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "takeaways"
+        ],
+        "summary": "Delete Takeaway",
+        "description": "Delete a takeaway. Blocked while agents still attach it.",
+        "operationId": "delete_takeaway_v1_takeaways__takeaway_id__delete",
+        "parameters": [
+          {
+            "name": "takeaway_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Takeaway Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Takeaway V1 Takeaways  Takeaway Id  Delete"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -4714,6 +5264,7 @@
             "title": "Metadata"
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "title": "AgentConfigSchema"
       },
@@ -4775,6 +5326,15 @@
             ],
             "title": "Scoring Rubric",
             "description": "Custom scoring rubric with named criteria"
+          },
+          "takeaway_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Takeaway Ids",
+            "description": "Takeaways (reusable structured outputs) to extract after each call; results keyed by takeaway name in analysis.takeaways"
           },
           "model": {
             "anyOf": [
@@ -5256,6 +5816,64 @@
         ],
         "title": "CreateProjectRequest"
       },
+      "CreateTakeawayRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9_-]*$",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "schema": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Schema"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "schema"
+        ],
+        "title": "CreateTakeawayRequest"
+      },
       "CreateTestRunRequest": {
         "properties": {
           "test_suite_id": {
@@ -5533,7 +6151,7 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Similarity Threshold",
-            "default": 0.7
+            "default": 0.3
           },
           "tool_description": {
             "anyOf": [
@@ -5763,6 +6381,18 @@
             "title": "Turn Detection",
             "default": "server_vad"
           },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
           "extra": {
             "additionalProperties": true,
             "type": "object",
@@ -5859,7 +6489,7 @@
             "maximum": 1.0,
             "minimum": 0.0,
             "title": "Similarity Threshold",
-            "default": 0.7
+            "default": 0.3
           }
         },
         "type": "object",
@@ -6121,6 +6751,19 @@
             ],
             "title": "Webhook Url"
           },
+          "webhook_secret": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 16
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Secret"
+          },
           "timeout_seconds": {
             "type": "integer",
             "maximum": 300.0,
@@ -6268,6 +6911,116 @@
         },
         "type": "object",
         "title": "UpdateKnowledgeBaseRequest"
+      },
+      "UpdatePhoneNumberRequest": {
+        "properties": {
+          "routing_target_type": {
+            "type": "string",
+            "pattern": "^(agent|workflow|webhook)$",
+            "title": "Routing Target Type"
+          },
+          "routing_target_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routing Target Id"
+          },
+          "server_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Server Url"
+          },
+          "sms_enabled": {
+            "type": "boolean",
+            "title": "Sms Enabled",
+            "default": false
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata"
+          }
+        },
+        "type": "object",
+        "required": [
+          "routing_target_type"
+        ],
+        "title": "UpdatePhoneNumberRequest",
+        "description": "In-place update of a binding's routing/SMS config.\n\nThe number's identity (SID, E.164) and its server_url_secret are stable \u2014\ncall-init endpoints keep verifying with the same secret across edits."
+      },
+      "UpdateTakeawayRequest": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "schema": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "type": "object",
+        "title": "UpdateTakeawayRequest"
       },
       "ValidationError": {
         "properties": {

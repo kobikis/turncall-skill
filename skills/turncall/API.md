@@ -42,7 +42,11 @@ Minimal `config`:
 }
 ```
 Common extras: `tools` (built-in + webhook + MCP), `analysis` (post-call summary/scoring),
-`voice`/`tts`/`stt` provider blocks. See openapi `AgentConfig` for the full surface.
+`stt`/`llm`/`tts` provider blocks, or `s2s` for a native speech-to-speech model
+(`pipeline_mode: "s2s"`; `s2s.base_url` targets an OpenAI-Realtime gateway like Grok).
+Reusable structured extractions attach via `analysis.takeaway_ids` (define them at
+`/v1/takeaways`; results land in `call.ended` under `analysis.takeaways`). See openapi
+`AgentConfig` for the full surface.
 
 ## Phone numbers
 
@@ -63,6 +67,11 @@ POST /v1/phone-numbers
   server decides the agent per call. This is how you route by logic.
 
 Returns `data.id` — the **phone-number id** you pass as `from_number_id` for outbound.
+
+Update a binding in place (id + call-init `server_url_secret` stay stable — no unbind/rebind):
+```
+PUT /v1/phone-numbers/{id}   {"routing_target_id": "...", "server_url": "...", "sms_enabled": true}
+```
 
 Weighted A/B routing (split inbound traffic across agents):
 ```
