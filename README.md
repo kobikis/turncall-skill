@@ -51,9 +51,20 @@ skills/turncall/
 
 ## Keeping it current
 
-`API.md` and `openapi.json` are curated/snapshotted from the TurnCall repo's
-`docs/openapi.json`. When the TurnCall API changes, refresh both from that authoritative
-spec.
+`openapi.json` is a byte-for-byte snapshot of the TurnCall repo's `docs/openapi.json`
+(the authoritative spec). When the TurnCall API changes, refresh it from there — the
+TurnCall repo automates both hops:
+
+```bash
+# from the TurnCall repo, pointed at your checkout of this repo
+make sync-skill SKILL_REPO=../turncall-skill
+```
+
+That regenerates `docs/openapi.json` from the live app, then copies it here; commit the
+result and open a PR. `make check-openapi` (in the TurnCall repo) guards against drift.
+
+`API.md` and the recipes are **hand-curated prose** — not derived from the spec, so
+`sync-skill` doesn't touch them. Update them by hand when endpoints are added or removed.
 
 ## License
 
