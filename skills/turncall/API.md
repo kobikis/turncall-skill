@@ -48,6 +48,15 @@ Reusable structured extractions attach via `analysis.takeaway_ids` (define them 
 `/v1/takeaways`; results land in `call.ended` under `analysis.takeaways`). See openapi
 `AgentConfig` for the full surface.
 
+**Ambience** — a quiet room under everything the agent says, for the whole call, on
+every voice transport (S2S too, never evals). Upload a recording once per project
+(`POST /v1/ambience-sounds`, multipart `file`; WAV/MP3/FLAC/OGG/AIFF, ≤60 s, ≤10 MB — `.m4a`
+is refused with the `ffmpeg` fix), then name it: `"ambience": {"sound": "<id>", "volume": 0.3}`.
+Absent means off. A phone line carries only 300–3400 Hz, so the upload returns an
+`inaudible_on_phone` warning for a sound a caller won't hear — use a recording of a real
+room, not a low rumble. `GET /v1/ambience-sounds/{id}/renditions/8000` is what a phone
+caller hears. A sound an agent uses can't be deleted (409 naming the agents).
+
 ## Phone numbers
 
 Bind a number you own (on your telephony provider) to an agent or a routing webhook:

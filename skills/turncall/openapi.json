@@ -3,7 +3,7 @@
   "info": {
     "title": "TurnCall",
     "description": "Production voice agent platform API",
-    "version": "0.1.0"
+    "version": "2.0.0"
   },
   "paths": {
     "/health": {
@@ -88,17 +88,35 @@
           "projects"
         ],
         "summary": "Create Project",
-        "description": "Create a new project. No auth required (bootstrapping).",
+        "description": "Create a new project. Requires the platform credential (X-Platform-Key) \u2014\nonly the builder can provision projects (ADR-0011).",
         "operationId": "create_project_v1_projects_post",
+        "parameters": [
+          {
+            "name": "x-platform-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Platform-Key"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreateProjectRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -106,8 +124,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "type": "object",
+                  "additionalProperties": true,
                   "title": "Response Create Project V1 Projects Post"
                 }
               }
@@ -254,7 +272,7 @@
           "api-keys"
         ],
         "summary": "Create Api Key",
-        "description": "Create the first API key for a project (bootstrap, no auth).\n\nAfter the first key exists, use authenticated endpoints to manage keys.",
+        "description": "Create the first API key for a project. Requires the platform credential\n(X-Platform-Key) \u2014 only the builder bootstraps keys (ADR-0011).\n\nAfter the first key exists, use authenticated endpoints to manage keys.",
         "operationId": "create_api_key_v1_api_keys_post",
         "parameters": [
           {
@@ -265,6 +283,22 @@
               "type": "string",
               "format": "uuid",
               "title": "Project Id"
+            }
+          },
+          {
+            "name": "x-platform-key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Platform-Key"
             }
           }
         ],
@@ -2820,6 +2854,68 @@
         }
       }
     },
+    "/v1/chat/sessions/{session_id}/tool-invocations": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "List Session Tool Invocations",
+        "description": "List tool invocations made during a chat session.\n\nThe text-channel counterpart of `GET /v1/tools/invocations/{call_id}`.",
+        "operationId": "list_session_tool_invocations_v1_chat_sessions__session_id__tool_invocations_get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Session Tool Invocations V1 Chat Sessions  Session Id  Tool Invocations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/knowledge-bases": {
       "post": {
         "tags": [
@@ -3989,6 +4085,305 @@
         }
       }
     },
+    "/v1/ambience-sounds": {
+      "post": {
+        "tags": [
+          "ambience"
+        ],
+        "summary": "Upload Sound",
+        "description": "Upload a sound. Stored as one mono MP3 per voice transport rate.",
+        "operationId": "upload_sound_v1_ambience_sounds_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_sound_v1_ambience_sounds_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Upload Sound V1 Ambience Sounds Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "ambience"
+        ],
+        "summary": "List Sounds",
+        "operationId": "list_sounds_v1_ambience_sounds_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Sounds V1 Ambience Sounds Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ambience-sounds/{sound_id}": {
+      "get": {
+        "tags": [
+          "ambience"
+        ],
+        "summary": "Get Sound",
+        "operationId": "get_sound_v1_ambience_sounds__sound_id__get",
+        "parameters": [
+          {
+            "name": "sound_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Sound Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Sound V1 Ambience Sounds  Sound Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ambience"
+        ],
+        "summary": "Delete Sound",
+        "description": "Delete a sound and its stored renditions. Refused while an agent names it.",
+        "operationId": "delete_sound_v1_ambience_sounds__sound_id__delete",
+        "parameters": [
+          {
+            "name": "sound_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Sound Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Sound V1 Ambience Sounds  Sound Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ambience-sounds/{sound_id}/renditions/{rate}": {
+      "get": {
+        "tags": [
+          "ambience"
+        ],
+        "summary": "Get Rendition Audio",
+        "description": "The rendition's MP3 itself. `rendition_urls` are file paths on local\nstorage, which no browser can open \u2014 this plays on every backend.",
+        "operationId": "get_rendition_audio_v1_ambience_sounds__sound_id__renditions__rate__get",
+        "parameters": [
+          {
+            "name": "sound_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Sound Id"
+            }
+          },
+          {
+            "name": "rate",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rate"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/tools": {
       "post": {
         "tags": [
@@ -4287,14 +4682,14 @@
         }
       }
     },
-    "/v1/test-suites": {
+    "/v1/eval-scenarios": {
       "post": {
         "tags": [
-          "testing"
+          "evals"
         ],
-        "summary": "Create Test Suite",
-        "description": "Create a test suite with scripted scenarios.",
-        "operationId": "create_test_suite_v1_test_suites_post",
+        "summary": "Create Eval Scenario",
+        "description": "Create a scenario. The definition is validated by round-tripping it\nthrough pipecat's parser and then stored verbatim.",
+        "operationId": "create_eval_scenario_v1_eval_scenarios_post",
         "parameters": [
           {
             "name": "authorization",
@@ -4318,7 +4713,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTestSuiteRequest"
+                "$ref": "#/components/schemas/CreateEvalScenarioRequest"
               }
             }
           }
@@ -4331,7 +4726,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Create Test Suite V1 Test Suites Post"
+                  "title": "Response Create Eval Scenario V1 Eval Scenarios Post"
                 }
               }
             }
@@ -4350,12 +4745,69 @@
       },
       "get": {
         "tags": [
-          "testing"
+          "evals"
         ],
-        "summary": "List Test Suites",
-        "description": "List test suites for the project.",
-        "operationId": "list_test_suites_v1_test_suites_get",
+        "summary": "List Eval Scenarios",
+        "description": "List scenarios, newest first, paged.\n\nThe tag **fan-out** deliberately does not go through here: it reads every\nmatching scenario, because a suite that silently ran one page of itself\nreports a verdict for scenarios that never ran.",
+        "operationId": "list_eval_scenarios_v1_eval_scenarios_get",
         "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EvalKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
           {
             "name": "authorization",
             "in": "header",
@@ -4381,7 +4833,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response List Test Suites V1 Test Suites Get"
+                  "title": "Response List Eval Scenarios V1 Eval Scenarios Get"
                 }
               }
             }
@@ -4399,23 +4851,22 @@
         }
       }
     },
-    "/v1/test-suites/{suite_id}": {
+    "/v1/eval-scenarios/{scenario_id}": {
       "get": {
         "tags": [
-          "testing"
+          "evals"
         ],
-        "summary": "Get Test Suite",
-        "description": "Get a test suite by ID.",
-        "operationId": "get_test_suite_v1_test_suites__suite_id__get",
+        "summary": "Get Eval Scenario",
+        "operationId": "get_eval_scenario_v1_eval_scenarios__scenario_id__get",
         "parameters": [
           {
-            "name": "suite_id",
+            "name": "scenario_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Suite Id"
+              "title": "Scenario Id"
             }
           },
           {
@@ -4443,7 +4894,136 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Test Suite V1 Test Suites  Suite Id  Get"
+                  "title": "Response Get Eval Scenario V1 Eval Scenarios  Scenario Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Update Eval Scenario",
+        "operationId": "update_eval_scenario_v1_eval_scenarios__scenario_id__put",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scenario Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEvalScenarioRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Eval Scenario V1 Eval Scenarios  Scenario Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Delete Eval Scenario",
+        "description": "Delete a scenario. Its runs survive, with the scenario name intact.",
+        "operationId": "delete_eval_scenario_v1_eval_scenarios__scenario_id__delete",
+        "parameters": [
+          {
+            "name": "scenario_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Scenario Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Eval Scenario V1 Eval Scenarios  Scenario Id  Delete"
                 }
               }
             }
@@ -4461,14 +5041,14 @@
         }
       }
     },
-    "/v1/test-runs": {
+    "/v1/eval-scenarios/from-call": {
       "post": {
         "tags": [
-          "testing"
+          "evals"
         ],
-        "summary": "Create Test Run",
-        "description": "Create and queue a test run for a test suite.\n\nThe run starts in 'pending' status. A background worker\nwill execute the scenarios and update results.",
-        "operationId": "create_test_run_v1_test_runs_post",
+        "summary": "Scenario From Call",
+        "description": "Convert a completed call into a scripted scenario draft.\n\nReturned for review by default; `save: true` stores it. Either way the\ntool mocks are seeded with what those tools actually returned, so the draft\nis safe to run under `mock_only` without repeating the call's side effects.",
+        "operationId": "scenario_from_call_v1_eval_scenarios_from_call_post",
         "parameters": [
           {
             "name": "authorization",
@@ -4492,7 +5072,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTestRunRequest"
+                "$ref": "#/components/schemas/ScenarioFromCallRequest"
               }
             }
           }
@@ -4505,7 +5085,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Create Test Run V1 Test Runs Post"
+                  "title": "Response Scenario From Call V1 Eval Scenarios From Call Post"
                 }
               }
             }
@@ -4523,14 +5103,395 @@
         }
       }
     },
-    "/v1/test-runs/{run_id}": {
+    "/v1/eval-scenarios/from-session": {
+      "post": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Scenario From Session",
+        "description": "Convert a finished text conversation into a scripted scenario draft.\n\nThe voice equivalent is `/from-call`. Both produce the same draft and both\ndefault to review rather than save, because a derived scenario asserts\nwhatever the agent did that day \u2014 mistakes included.",
+        "operationId": "scenario_from_session_v1_eval_scenarios_from_session_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScenarioFromSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Scenario From Session V1 Eval Scenarios From Session Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/eval-runs": {
+      "post": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Create Eval Run",
+        "description": "Queue a run per scenario. 202: the worker executes them, never this\nprocess.\n\nA `tag` fans out to every scenario carrying it; the runs share one batch id\nso a single request has a single readable verdict. Each run is queued\nindependently, so one that cannot be pushed does not cost the others theirs.",
+        "operationId": "create_eval_run_v1_eval_runs_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEvalRunRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Eval Run V1 Eval Runs Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": [
-          "testing"
+          "evals"
         ],
-        "summary": "Get Test Run",
-        "description": "Get a test run by ID.",
-        "operationId": "get_test_run_v1_test_runs__run_id__get",
+        "summary": "List Eval Runs",
+        "description": "List runs, newest first, paged like every other list here: a year\nof CI runs is the volume this feature is for.",
+        "operationId": "list_eval_runs_v1_eval_runs_get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "scenario_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scenario Id"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EvalRunStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "1-based page number",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "1-based page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Eval Runs V1 Eval Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/eval-runs/batches/{batch_id}": {
+      "get": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Get Eval Batch",
+        "description": "A batch's outcome without fetching every run's transcripts.\n\nRoute declared before `/{run_id}` so a literal path segment is not read as\na run id \u2014 FastAPI matches in declaration order.",
+        "operationId": "get_eval_batch_v1_eval_runs_batches__batch_id__get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Eval Batch V1 Eval Runs Batches  Batch Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/eval-runs/{run_id}": {
+      "get": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Get Eval Run",
+        "description": "One run. `?view=summary` answers \"is it done yet\" without the payload.\n\nThe full read carries every iteration's transcript and all three\nsnapshots, which for a 50-iteration audio run is a large response to poll\non a timer.",
+        "operationId": "get_eval_run_v1_eval_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "full",
+              "title": "View"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Eval Run V1 Eval Runs  Run Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "evals"
+        ],
+        "summary": "Cancel Eval Run",
+        "description": "Cancel a run while it is queued or running.",
+        "operationId": "cancel_eval_run_v1_eval_runs__run_id__delete",
         "parameters": [
           {
             "name": "run_id",
@@ -4567,7 +5528,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": true,
-                  "title": "Response Get Test Run V1 Test Runs  Run Id  Get"
+                  "title": "Response Cancel Eval Run V1 Eval Runs  Run Id  Delete"
                 }
               }
             }
@@ -5146,6 +6107,97 @@
   },
   "components": {
     "schemas": {
+      "AWSConfigSchema": {
+        "properties": {
+          "region": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "access_key_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Key Id"
+          },
+          "secret_access_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secret Access Key"
+          },
+          "session_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Token"
+          },
+          "role_arn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role Arn"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1224
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "title": "AWSConfigSchema",
+        "description": "AWS credentials/region shared by the bedrock LLM and aws S2S providers.\n\nOne block per agent so both providers authenticate as the same principal.\nSee adr/0016."
+      },
       "AgentConfigSchema": {
         "properties": {
           "pipeline_mode": {
@@ -5214,6 +6266,21 @@
             "title": "Silence Timeout Ms",
             "default": 800
           },
+          "user_idle_timeout_ms": {
+            "type": "integer",
+            "maximum": 300000.0,
+            "minimum": 0.0,
+            "title": "User Idle Timeout Ms",
+            "description": "Silence after the agent stops speaking before the idle guard reacts: first it speaks idle_message, then it ends the call. 0 disables. Not silence_timeout_ms, which is the VAD stop window inside a turn.",
+            "default": 10000
+          },
+          "idle_message": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Idle Message",
+            "description": "Spoken on the first idle timeout. Cascade speaks it verbatim; S2S has no TTS stage, so the model is asked to check in.",
+            "default": "Are you still there?"
+          },
           "interruption_enabled": {
             "type": "boolean",
             "title": "Interruption Enabled",
@@ -5246,8 +6313,21 @@
           "s2s": {
             "$ref": "#/components/schemas/S2SConfigSchema"
           },
+          "aws": {
+            "$ref": "#/components/schemas/AWSConfigSchema"
+          },
           "avatar": {
             "$ref": "#/components/schemas/AvatarConfigSchema"
+          },
+          "ambience": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AmbienceConfigSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "transport": {
             "type": "string",
@@ -5267,6 +6347,30 @@
         "additionalProperties": false,
         "type": "object",
         "title": "AgentConfigSchema"
+      },
+      "AmbienceConfigSchema": {
+        "properties": {
+          "sound": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sound",
+            "description": "An ambience sound in this project"
+          },
+          "volume": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Volume",
+            "default": 0.3
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "sound"
+        ],
+        "title": "AmbienceConfigSchema",
+        "description": "A room the agent sounds like it is in (ADR-0021). Absent means off.\n\nNo `enabled` flag: the sound id's absence already says off, and two ways\nto say it are two things that can disagree."
       },
       "AnalysisSchema": {
         "properties": {
@@ -5657,6 +6761,20 @@
         ],
         "title": "Body_upload_document_v1_knowledge_bases__kb_id__documents_post"
       },
+      "Body_upload_sound_v1_ambience_sounds_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_sound_v1_ambience_sounds_post"
+      },
       "BriefingSummary": {
         "properties": {
           "from_summary": {
@@ -5722,6 +6840,160 @@
           "name"
         ],
         "title": "CreateApiKeyRequest"
+      },
+      "CreateEvalRunRequest": {
+        "properties": {
+          "scenario_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scenario Id"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          },
+          "scenario": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InlineScenario"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "target": {
+            "$ref": "#/components/schemas/EvalTarget"
+          },
+          "modality": {
+            "$ref": "#/components/schemas/EvalModality",
+            "default": "text"
+          },
+          "iterations": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Iterations",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "title": "CreateEvalRunRequest",
+        "description": "Run one stored scenario, every scenario carrying a tag (#75), or a\nscenario supplied inline (#77).\n\nExactly one of the three. A tag fans out to one run per matching scenario,\nall sharing a batch id, so one request has one readable verdict \u2014 which is\nwhat the CLI's single exit code is built on.\n\n`extra=\"forbid\"` is what makes \"no run-level judge\" a rule (#119). A run is\nwhat it was queued as: a request that could swap the judge would make two\nruns of one scenario incomparable with nothing on either row explaining\nwhy, and quietly ignoring the field is the same outcome with the author\nbelieving otherwise. Name it on the scenario \u2014 including the inline one\nabove, which is where a run-shaped `judge:` was aiming."
+      },
+      "CreateEvalScenarioRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "definition": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Definition"
+          },
+          "tool_mocks": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Mocks"
+          },
+          "tool_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalToolPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Tags"
+          },
+          "default_target": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Target"
+          },
+          "judge": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalModelSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "simulator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalModelSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "definition"
+        ],
+        "title": "CreateEvalScenarioRequest"
       },
       "CreateKnowledgeBaseRequest": {
         "properties": {
@@ -5874,55 +7146,6 @@
         ],
         "title": "CreateTakeawayRequest"
       },
-      "CreateTestRunRequest": {
-        "properties": {
-          "test_suite_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Test Suite Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "test_suite_id"
-        ],
-        "title": "CreateTestRunRequest"
-      },
-      "CreateTestSuiteRequest": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 1,
-            "title": "Name"
-          },
-          "agent_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Agent Id"
-          },
-          "scenarios": {
-            "items": {
-              "$ref": "#/components/schemas/ScenarioSchema"
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Scenarios"
-          },
-          "rubric": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Rubric"
-          }
-        },
-        "type": "object",
-        "required": [
-          "name",
-          "agent_id",
-          "scenarios"
-        ],
-        "title": "CreateTestSuiteRequest"
-      },
       "CreateWebhookRequest": {
         "properties": {
           "url": {
@@ -5956,6 +7179,167 @@
         },
         "type": "object",
         "title": "EndCallRequest"
+      },
+      "EvalKind": {
+        "type": "string",
+        "enum": [
+          "script",
+          "simulation"
+        ],
+        "title": "EvalKind",
+        "description": "Which of the two kinds of scenario this is.\n\nThe values are pipecat's own (`pipecat.evals.scenario.EvalKind`), which it\ncarries into the session, the driver and the result record \u2014 so a stored\nrow and a pipecat object never need translating between them."
+      },
+      "EvalModality": {
+        "type": "string",
+        "enum": [
+          "text",
+          "audio"
+        ],
+        "title": "EvalModality",
+        "description": "Whether the conversation is spoken or typed.\n\n`text` skips STT and TTS entirely, so it is fast and free and covers the\nsmallest share of a voice platform's risk; `audio` is the only mode that\nreaches the provider-connect path where most regressions have lived."
+      },
+      "EvalModelProvider": {
+        "type": "string",
+        "enum": [
+          "ollama",
+          "openai",
+          "anthropic",
+          "jev"
+        ],
+        "title": "EvalModelProvider",
+        "description": "Who runs an eval's judge, or its persona (#118).\n\nA closed set on purpose. Pipecat reaches anything but Ollama through\n`factory`, a dotted path it imports \u2014 so the provider name is what a\nrequest carries, and `evals.judges.PROVIDERS` maps it to a callable\nTurnCall ships. The set is the allowlist.\n\n`ollama` stays the default: it is pipecat's, it is local, and a judge that\nneeds no key is what keeps an eval runnable on a laptop.\n\n`jev` is judge-only, and structurally so: it is a classifier rather than an\nLLM service, so it lives in `JUDGE_PROVIDERS` and not in `PROVIDERS`, and a\n`simulator:` naming it fails the unknown-provider check with the role in the\nmessage (#141)."
+      },
+      "EvalModelSchema": {
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/EvalModelProvider",
+            "default": "ollama"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "endpoint": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Endpoint"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "EvalModelSchema",
+        "description": "One LLM an eval runs besides the agent's: the judge, or the persona (#118).\n\n`provider` is a closed set mapping to factories TurnCall ships\n(`evals.judges.PROVIDERS`). Pipecat's own escape hatch is `factory`, a\ndotted path it hands to `importlib.import_module` \u2014 safe for a file on\ndisk, remote code execution for a request body \u2014 so a caller names a\nprovider and never a path. `extra=\"forbid\"` is what makes that a rule\nrather than a convention: a request carrying `factory` is a 422."
+      },
+      "EvalRunStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "passed",
+          "failed",
+          "errored",
+          "cancelled"
+        ],
+        "title": "EvalRunStatus",
+        "description": "Where a run is, and how it ended.\n\n`errored` is deliberately not a kind of `failed`: it means the harness did\nnot complete (a connect failure, a judge outage), which is neither a pass\nnor a fail and never counts toward a rate. A judge outage reading as an\nagent regression is how a suite loses its audience."
+      },
+      "EvalTarget": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^(agent|agent_name|inline)$",
+            "title": "Type"
+          },
+          "agent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Environment"
+          },
+          "agent": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "EvalTarget",
+        "description": "What a run points at (#74).\n\nThree forms, and the difference between the first two matters: an agent row\nis one immutable version, so `agent` pins a version forever \u2014 a scenario\ntargeting it silently stops testing production the moment the next version\nis published. `agent_name` resolves to whatever is published at run time.\n`inline` has no row at all, which is how a prompt or model change is\nevaluated *before* publishing it, and the sandbox a scenario is pointed at\nwhen its tools have real side effects."
+      },
+      "EvalToolPolicy": {
+        "type": "string",
+        "enum": [
+          "mock_only",
+          "live"
+        ],
+        "title": "EvalToolPolicy",
+        "description": "What happens when the agent calls a tool with no mock (slice #71).\n\n`mock_only` is the default and fails closed: a scenario pointed at an agent\nwhose tools have real side effects must not book a real appointment on\nevery iteration. `live` is the explicit opt-in for read-only lookups."
       },
       "GuardrailsSchema": {
         "properties": {
@@ -6053,6 +7437,70 @@
         ],
         "title": "InjectContextRequest"
       },
+      "InlineScenario": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "definition": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Definition"
+          },
+          "tool_mocks": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Mocks"
+          },
+          "tool_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalToolPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "judge": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalModelSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "simulator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalModelSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "definition"
+        ],
+        "title": "InlineScenario",
+        "description": "A scenario supplied on the run instead of stored first (#77).\n\nThis is what a local file holds, and why the CLI needs no format of its\nown: the file is the API request body, validated by the same parser a\nstored scenario is. Nothing is written to `eval_scenarios` \u2014 the run's\n`scenario_id` is null and its `resolved_scenario` snapshot is the record,\nwhich is the same shape ADR-0017 uses for an inline agent."
+      },
       "LLMConfigSchema": {
         "properties": {
           "provider": {
@@ -6063,7 +7511,7 @@
           "model": {
             "type": "string",
             "title": "Model",
-            "default": "gpt-4o-mini"
+            "default": ""
           },
           "temperature": {
             "type": "number",
@@ -6109,6 +7557,18 @@
             },
             "type": "array",
             "title": "Fallback Models"
+          },
+          "reasoning_effort": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(minimal|low|medium|high)$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasoning Effort"
           },
           "extra": {
             "additionalProperties": true,
@@ -6368,7 +7828,7 @@
           "model": {
             "type": "string",
             "title": "Model",
-            "default": "gpt-4o-realtime-preview"
+            "default": "gpt-realtime-2.1"
           },
           "voice": {
             "type": "string",
@@ -6393,6 +7853,32 @@
             ],
             "title": "Base Url"
           },
+          "temperature": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature"
+          },
+          "max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 128000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens"
+          },
           "extra": {
             "additionalProperties": true,
             "type": "object",
@@ -6413,7 +7899,7 @@
           "model": {
             "type": "string",
             "title": "Model",
-            "default": "nova-3"
+            "default": ""
           },
           "language": {
             "anyOf": [
@@ -6427,6 +7913,13 @@
             "title": "Language",
             "default": "en"
           },
+          "keyterms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keyterms"
+          },
           "extra": {
             "additionalProperties": true,
             "type": "object",
@@ -6436,38 +7929,87 @@
         "type": "object",
         "title": "STTConfigSchema"
       },
-      "ScenarioSchema": {
+      "ScenarioFromCallRequest": {
         "properties": {
-          "name": {
+          "call_id": {
             "type": "string",
-            "maxLength": 255,
-            "minLength": 1,
+            "format": "uuid",
+            "title": "Call Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Name"
           },
-          "turns": {
+          "save": {
+            "type": "boolean",
+            "title": "Save",
+            "default": false
+          },
+          "tags": {
             "items": {
-              "additionalProperties": {
-                "type": "string"
-              },
-              "type": "object"
+              "type": "string"
             },
             "type": "array",
-            "title": "Turns",
-            "description": "List of {role, content} turn pairs"
-          },
-          "expected_outcomes": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Expected Outcomes"
+            "maxItems": 32,
+            "title": "Tags"
           }
         },
         "type": "object",
         "required": [
-          "name",
-          "turns"
+          "call_id"
         ],
-        "title": "ScenarioSchema",
-        "description": "A scripted conversation scenario."
+        "title": "ScenarioFromCallRequest",
+        "description": "Derive a scripted scenario from a call that already happened (#78)."
+      },
+      "ScenarioFromSessionRequest": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Session Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "save": {
+            "type": "boolean",
+            "title": "Save",
+            "default": false
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_id"
+        ],
+        "title": "ScenarioFromSessionRequest",
+        "description": "Derive a scenario from a text conversation (#87).\n\nThe same idea as `from-call` for SMS, the Chat API and WhatsApp text \u2014 and\nthe source a manual test in a console produces, which had no route in."
       },
       "SearchRequest": {
         "properties": {
@@ -6705,6 +8247,13 @@
             "title": "Speed",
             "default": 1.0
           },
+          "pronunciations": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Pronunciations"
+          },
           "extra": {
             "additionalProperties": true,
             "type": "object",
@@ -6881,6 +8430,118 @@
         },
         "type": "object",
         "title": "UpdateAgentRequest"
+      },
+      "UpdateEvalScenarioRequest": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "definition": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Definition"
+          },
+          "tool_mocks": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Mocks"
+          },
+          "tool_policy": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalToolPolicy"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "default_target": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Target"
+          },
+          "judge": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalModelSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "simulator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvalModelSchema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "title": "UpdateEvalScenarioRequest"
       },
       "UpdateKnowledgeBaseRequest": {
         "properties": {
